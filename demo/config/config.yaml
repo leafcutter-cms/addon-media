@@ -1,0 +1,17 @@
+# generally you should not need to specify this
+# site:
+#   url: 'http://local.test/addon-template/demo/'
+
+directories:
+  web: ${directories.base}
+
+theme:
+  activate:
+    - core/basic
+
+templates:
+  site:
+    name: Demo Leafcutter site
+
+cache:
+  driver: ephemeral
