@@ -1,0 +1,8 @@
+# core theme, so it should be overrideable by everything
+priority: -1
+
+packages:
+  library/media-embedding:
+    css:
+      blocking:
+        - blocking.css

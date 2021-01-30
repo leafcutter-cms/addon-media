@@ -1,5 +1,14 @@
 <?php
-namespace Leafcutter\Addons\MyNamespace\MyAddon;
+namespace Leafcutter\Addons\Leafcutter\Media;
+
+use HtmlObjectStrings\GenericTag;
+use Leafcutter\Addons\Leafcutter\Media\Media\AbstractMedia;
+use Leafcutter\Addons\Leafcutter\Media\Media\ImageAssetMedia;
+use Leafcutter\Addons\Leafcutter\Media\Media\MediaError;
+use Leafcutter\DOM\DOMEvent;
+use Leafcutter\Images\ImageAsset;
+use Leafcutter\Response;
+use Symfony\Component\Yaml\Yaml;
 
 class Addon extends \Leafcutter\Addons\AbstractAddon
 {
@@ -8,7 +17,86 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
      * for some other reason can't be a constant, delete this constant and
      * override the method `getDefaultConfig()` instead.
      */
-    const DEFAULT_CONFIG = [];
+    const DEFAULT_CONFIG = [
+        'max-height' => 80,
+    ];
+
+    /**
+     * Check response content for <code> tags and inject CSS if
+     * they are found
+     */
+    public function onResponsePageSet(Response $response)
+    {
+        if (strpos($response->content(), '<!--media-container-->') !== false) {
+            $this->leafcutter->theme()->activate('library/media-embedding');
+        }
+    }
+
+    public function onDOMElement_media(DOMEvent $event)
+    {
+        $media = trim($event->getNode()->textContent);
+        $media = $this->parseMediaString($media);
+        $event->setReplacement('<!--media-container-->' . $media);
+    }
+
+    public function parseMediaString(string $input): AbstractMedia
+    {
+        $input = preg_split('/[\r\n]+\-\-\-[\r\n]+/', $input);
+        $media = $this->makeMediaFromString(array_shift($input)) ?? new MediaError('Media or handler not found');
+        // get config
+        if ($input) {
+            $config = Yaml::parse($input[0]);
+            $media->caption(@$config['caption']);
+            $media->alt(@$config['alt']);
+            $media->credit(@$config['credit']);
+        }
+        // build the media itself's output
+        return $media;
+    }
+
+    /**
+     * Make a Media object from Leafcutter Content (Assets/Pages)
+     *
+     * @param mixed $source
+     * @return void
+     */
+    protected function makeMediaFromContent($source): ?AbstractMedia
+    {
+        return $this->leafcutter->events()->dispatchFirst(
+            'onMediaContentSource', $source
+        );
+    }
+
+    public function onMediaContentSource($source): ?AbstractMedia
+    {
+        if ($source instanceof ImageAsset) {
+            return new ImageAssetMedia($source);
+        }
+        return null;
+    }
+
+    public function onMediaContentString(string $string): ?AbstractMedia
+    {
+        return null;
+    }
+
+    /**
+     * Make a Media object from a media spec string
+     *
+     * @param mixed $source
+     * @return ?AbstractMedia
+     */
+    protected function makeMediaFromString(string $source): ?AbstractMedia
+    {
+        if ($media = $this->leafcutter->find($source)) {
+            if ($media = $this->makeMediaFromContent($media)) {
+                return $media;
+            }
+        }
+        return $this->leafcutter->events()->dispatchFirst(
+            'onMediaContentString', $source
+        ) ?? null;
+    }
 
     /**
      * Method is executed as the first step when this Addon is activated.
@@ -17,6 +105,7 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
      */
     public function activate(): void
     {
+        $this->leafcutter->theme()->addDirectory(__DIR__ . '/../themes');
     }
 
     /**
@@ -28,7 +117,7 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
      */
     public function getEventSubscribers(): array
     {
-        return [];
+        return [$this];
     }
 
     /**
@@ -40,7 +129,7 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
      */
     public static function provides(): array
     {
-        return [];
+        return ['media-embedding'];
     }
 
     /**

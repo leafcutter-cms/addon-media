@@ -1,0 +1,59 @@
+@import "@/~themes/theme-core/mixins/colors.scss";
+@import "@/~themes/theme-core/mixins/sizing.scss";
+
+.media-container {
+    @include margin-y;
+    position: relative;
+    max-width: 100%;
+
+    // .media-wrapper-maxwidth {
+    //     margin: 0 auto;
+    // }
+
+    .media-wrapper {
+        position: relative;
+
+        .media-content {
+            @include bg-accent;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+    }
+
+    .media-credit,
+    .media-caption {
+        @include padding-sm;
+        @include bg-muted;
+        @include font-size-sm;
+    }
+
+    .media-credit {
+        padding-top: 0;
+        text-align: right;
+        @include font-size-xs;
+    }
+
+    .media-credit+.media-caption {
+        padding-top: 0;
+    }
+
+    &.fluid-height {
+        .media-wrapper {
+            .media-content {
+                position: relative;
+            }
+        }
+    }
+
+    &.media-error {
+        .media-wrapper {
+            .media-content {
+                @include padding;
+                @include bg-warning;
+            }
+        }
+    }
+}

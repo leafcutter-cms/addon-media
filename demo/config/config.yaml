@@ -6,12 +6,24 @@ directories:
   web: ${directories.base}
 
 theme:
+  # css:
+  #   bundle: false
+  #   max_inlined: 102400
+  #   minify: false
+  # js:
+  #   bundle: false
+  #   minify: false
+  #   inline_loader: false
   activate:
     - core/basic
 
+addons:
+  activate:
+    - media-embedding
+
 templates:
   site:
-    name: Demo Leafcutter site
+    name: Media demo
 
 cache:
   driver: ephemeral

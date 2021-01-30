@@ -1,12 +1,12 @@
 {
-    "name": "leafcutter/addon-template",
-    "description": "Leafcutter addon project template. Before beginning change extra/leafcutter-addon and the autoloader to your own namespace.",
+    "name": "leafcutter/addon-media",
+    "description": "Leafcutter addon to allow automatic embedding of media using fancy/progressive techniques.",
     "extra": {
-        "leafcutter-addon": "Leafcutter\\Addons\\MyNamespace\\MyAddon\\Addon"
+        "leafcutter-addon": "Leafcutter\\Addons\\Leafcutter\\Media\\Addon"
     },
     "autoload": {
         "psr-4": {
-            "Leafcutter\\Addons\\MyNamespace\\MyAddon\\": "src"
+            "Leafcutter\\Addons\\Leafcutter\\Media\\": "src"
         }
     },
     "authors": [
@@ -22,5 +22,8 @@
     "require-dev": {
         "leafcutter/leafcutter": "dev-main",
         "leafcutter/theme-core": "*"
+    },
+    "require": {
+        "byjoby/html-object-strings": "dev-main"
     }
 }
