@@ -5,7 +5,10 @@ use Leafcutter\Addons\Leafcutter\Media\Media\AbstractMedia;
 use Leafcutter\Addons\Leafcutter\Media\Media\DTubeVideo;
 use Leafcutter\Addons\Leafcutter\Media\Media\ImageAssetMedia;
 use Leafcutter\Addons\Leafcutter\Media\Media\MediaError;
+use Leafcutter\Addons\Leafcutter\Media\Media\VideoAssetMedia;
 use Leafcutter\Addons\Leafcutter\Media\Media\YouTubeVideo;
+use Leafcutter\Assets\AbstractAsset;
+use Leafcutter\Assets\AssetInterface;
 use Leafcutter\DOM\DOMEvent;
 use Leafcutter\Images\ImageAsset;
 use Leafcutter\Response;
@@ -21,24 +24,25 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
      */
     const DEFAULT_CONFIG = [
         'max-height' => 80,
+        'video-extensions' => ['ogv', 'mp4', 'webm'],
     ];
 
     /**
-     * Check response content for <code> tags and inject CSS if
+     * Check response content for media-container tags and inject CSS if
      * they are found
      */
-    public function onResponsePageSet(Response $response)
-    {
-        if (strpos($response->content(), '<!--media-container-->') !== false) {
-            $this->leafcutter->theme()->activate('library/media-embedding');
-        }
-    }
+    // public function onResponsePageSet(Response $response)
+    // {
+    //     if (strpos($response->content(), '<!--media-container-->') !== false) {
+    //         $this->leafcutter->theme()->activate('library/media-embedding');
+    //     }
+    // }
 
     public function onDOMElement_media(DOMEvent $event)
     {
         $media = trim($event->getNode()->textContent);
         $media = $this->parseMediaString($media);
-        $event->setReplacement('<!--media-container-->' . $media);
+        $event->setReplacement($media->__toString());
     }
 
     public function parseMediaString(string $input): AbstractMedia
@@ -64,6 +68,14 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
      */
     protected function makeMediaFromContent($source): ?AbstractMedia
     {
+        if ($source instanceof AssetInterface) {
+            if ($media = $this->leafcutter->events()->dispatchFirst('onMediaContentAsset', $source)) {
+                return $media;
+            }
+            if ($media = $this->leafcutter->events()->dispatchFirst('onMediaContentSource_' . $source->extension(), $source)) {
+                return $media;
+            }
+        }
         return $this->leafcutter->events()->dispatchFirst(
             'onMediaContentSource', $source
         );
@@ -71,6 +83,11 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
 
     public function onMediaContentSource($source): ?AbstractMedia
     {
+        if ($source instanceof AbstractAsset) {
+            if (in_array($source->extension(), $this->config('video-extensions'))) {
+                return new VideoAssetMedia($source);
+            }
+        }
         if ($source instanceof ImageAsset) {
             return new ImageAssetMedia($source);
         }

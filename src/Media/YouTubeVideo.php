@@ -22,6 +22,6 @@ class YouTubeVideo extends AbstractMedia
 
     public function classes(): array
     {
-        return ['media-youtube'];
+        return ['media-video', 'media-youtube'];
     }
 }

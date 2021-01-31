@@ -1,0 +1,19 @@
+@import "@/~themes/theme-core/mixins/colors.scss";
+@import "@/~themes/theme-core/mixins/sizing.scss";
+
+.vjs-leafcutter-theme {
+  @include font-size-lg;
+  &.vjs-paused {
+    cursor: pointer;
+  }
+  .vjs-control-bar {
+    background-color: $bg-dark-normal;
+    color: $text-dark-normal;
+  }
+  .vjs-slider {
+    background-color: $bg-dark-accent;
+  }
+  .vjs-load-progress, .vjs-slider-bar {
+    background-color: $bg-primary;
+  }
+}

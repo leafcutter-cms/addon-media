@@ -22,6 +22,6 @@ class DTubeVideo extends AbstractMedia
 
     public function classes(): array
     {
-        return ['media-youtube'];
+        return ['media-video', 'media-dtube'];
     }
 }

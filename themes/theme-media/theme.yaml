@@ -6,3 +6,16 @@ packages:
     css:
       blocking:
         - blocking.css
+  library/videojs:
+    css:
+      page:
+        videojs: video.js/video.js.css
+    js:
+      page:
+        videojs: video.js/video.min.js
+    require-after:
+      - library/videojs/theme
+  library/videojs/theme:
+    css:
+      page:
+        videojs-theme: video.js/theme.css

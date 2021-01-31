@@ -6,7 +6,7 @@ use Leafcutter\Leafcutter;
 
 abstract class AbstractMedia
 {
-    protected $alt,$caption,$credit;
+    protected $alt, $caption, $credit;
 
     abstract protected function html(): string;
     abstract public function classes(): array;
@@ -34,7 +34,7 @@ abstract class AbstractMedia
         }
         return $this->alt;
     }
-    
+
     public function caption(string $set = null): ?string
     {
         if ($set !== null) {
@@ -60,12 +60,12 @@ abstract class AbstractMedia
         $wrapper = new GenericTag();
         $wrapper->tag = 'div';
         $wrapper->addClass('media-wrapper');
-        $css = ['container'=>[],'wrapper'=>[]];
+        $css = ['container' => [], 'wrapper' => []];
         foreach ($classes as $class) {
             $container->addClass($class);
         }
         if ($this->width()) {
-            $css['wrapper']['max-width'] = $this->width().'px';
+            $css['wrapper']['max-width'] = $this->width() . 'px';
         }
         if ($this->aspectRatio()) {
             $css['wrapper']['padding-bottom'] = $this->aspectRatio() * 100 . '%';
@@ -86,7 +86,7 @@ abstract class AbstractMedia
         $content->content = $this->html();
         // add background color
         if ($this->color()) {
-            $content->attr('style','background-color:'.$this->color());
+            $content->attr('style', 'background-color:' . $this->color());
         }
         // assemble the whole thing
         $wrapper->content = $content;
@@ -97,10 +97,10 @@ abstract class AbstractMedia
             $wrapper .= '<div class="media-caption">' . $this->caption() . '</div>';
         }
         if ($this->width()) {
-            $container->content = "<div class=\"media-wrapper-maxwidth\" style=\"max-width:".$this->width()."px\">".$wrapper."</div>";
-        }else {
+            $container->content = "<div class=\"media-wrapper-maxwidth\" style=\"max-width:" . $this->width() . "px\">" . $wrapper . "</div>";
+        } else {
             $container->content = $wrapper;
         }
-        return $container->__toString();
+        return '<!-- theme_package:library/media-embedding -->' . $container->__toString();
     }
 }
