@@ -1,13 +1,15 @@
 <?php
 namespace Leafcutter\Addons\Leafcutter\Media;
 
-use HtmlObjectStrings\GenericTag;
 use Leafcutter\Addons\Leafcutter\Media\Media\AbstractMedia;
+use Leafcutter\Addons\Leafcutter\Media\Media\DTubeVideo;
 use Leafcutter\Addons\Leafcutter\Media\Media\ImageAssetMedia;
 use Leafcutter\Addons\Leafcutter\Media\Media\MediaError;
+use Leafcutter\Addons\Leafcutter\Media\Media\YouTubeVideo;
 use Leafcutter\DOM\DOMEvent;
 use Leafcutter\Images\ImageAsset;
 use Leafcutter\Response;
+use Leafcutter\URL;
 use Symfony\Component\Yaml\Yaml;
 
 class Addon extends \Leafcutter\Addons\AbstractAddon
@@ -77,6 +79,13 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
 
     public function onMediaContentString(string $string): ?AbstractMedia
     {
+        $url = new URL($string);
+        switch ($url->host()) {
+            case 'www.youtube.com':
+                return new YouTubeVideo($url->query()['v']);
+            case 'd.tube':
+                return new DTubeVideo(preg_replace('@^\!/v/@', '', $url->fragment()));
+        }
         return null;
     }
 
