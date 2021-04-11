@@ -1,0 +1,51 @@
+@import "@/~themes/theme-core/mixins/colors.scss";
+@import "@/~themes/theme-core/mixins/sizing.scss";
+
+.media-gallery {
+    @include margin-y;
+    background-color: $bg-overlay;
+    position: relative;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+
+    .gallery-content {
+        @include padding-sm;
+
+        >.media-container {
+            margin: 0;
+
+            .media-credit,
+            .media-caption {
+                background: transparent;
+                @include high-contrast-fg($bg-overlay);
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .media-caption {
+                padding-bottom: 0;
+            }
+        }
+    }
+
+    .gallery-thumbs {
+        @include padding-sm;
+        max-height: 25vh;
+        overflow: auto;
+        display: flex;
+        flex-wrap: wrap;
+        background-color: mix($bg-overlay, #999, 90%);
+
+        .thumbnail {
+            height: 10vh;
+            max-height: 6em;
+            display: inline-block;
+            border: $margin/4 solid mix($bg-overlay, #999, 80%);
+
+            &.active {
+                border-color: $bg-primary;
+            }
+        }
+    }
+}

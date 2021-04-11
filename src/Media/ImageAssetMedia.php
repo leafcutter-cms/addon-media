@@ -9,11 +9,23 @@ class ImageAssetMedia extends AbstractMedia
 {
     protected $image;
     protected $color;
+    protected $hash;
 
     public function __construct(ImageAsset $image)
     {
+        $this->hash = $image->hash();
         $this->image = Leafcutter::get()->images()->get($image->url());
         $this->info = getimagesize($image->outputFile());
+    }
+
+    public function thumbnail(): string
+    {
+        return $this->image->preset('thumbnail')->publicUrl();
+    }
+
+    public function srcHash(): string
+    {
+        return $this->hash;
     }
 
     public function color(): ?string

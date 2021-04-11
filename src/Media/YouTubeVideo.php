@@ -5,6 +5,11 @@ class YouTubeVideo extends AbstractMedia
 {
     protected $id;
 
+    public function srcHash(): string
+    {
+        return md5(get_called_class() . $this->id);
+    }
+
     public function __construct(string $id)
     {
         $this->id = $id;

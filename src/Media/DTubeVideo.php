@@ -10,6 +10,11 @@ class DTubeVideo extends AbstractMedia
         $this->id = $id;
     }
 
+    public function srcHash(): string
+    {
+        return md5(get_called_class().$this->id);
+    }
+
     public function aspectRatio(): float
     {
         return 9 / 16;

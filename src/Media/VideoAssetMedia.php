@@ -13,6 +13,11 @@ class VideoAssetMedia extends AbstractMedia
         $this->source = $source;
     }
 
+    public function srcHash(): string
+    {
+        return $this->source->hash();
+    }
+
     public function aspectRatio(): float
     {
         return 9 / 16;

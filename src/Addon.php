@@ -1,18 +1,22 @@
 <?php
 namespace Leafcutter\Addons\Leafcutter\Media;
 
+use DOMElement;
+use DOMText;
 use Leafcutter\Addons\Leafcutter\Media\Media\AbstractMedia;
 use Leafcutter\Addons\Leafcutter\Media\Media\DTubeVideo;
+use Leafcutter\Addons\Leafcutter\Media\Media\GalleryMedia;
+use Leafcutter\Addons\Leafcutter\Media\Media\IframeAssetMedia;
 use Leafcutter\Addons\Leafcutter\Media\Media\ImageAssetMedia;
 use Leafcutter\Addons\Leafcutter\Media\Media\MediaError;
 use Leafcutter\Addons\Leafcutter\Media\Media\VideoAssetMedia;
 use Leafcutter\Addons\Leafcutter\Media\Media\YouTubeVideo;
-use Leafcutter\Assets\AbstractAsset;
 use Leafcutter\Assets\AssetInterface;
 use Leafcutter\DOM\DOMEvent;
 use Leafcutter\Images\ImageAsset;
-use Leafcutter\Response;
+use Leafcutter\Leafcutter;
 use Leafcutter\URL;
+use Leafcutter\URLFactory;
 use Symfony\Component\Yaml\Yaml;
 
 class Addon extends \Leafcutter\Addons\AbstractAddon
@@ -23,30 +27,57 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
      * override the method `getDefaultConfig()` instead.
      */
     const DEFAULT_CONFIG = [
-        'max-height' => 80,
+        'max-height' => 60,
         'video-extensions' => ['ogv', 'mp4', 'webm'],
+        'iframe-extensions' => ['pdf'],
     ];
-
-    /**
-     * Check response content for media-container tags and inject CSS if
-     * they are found
-     */
-    // public function onResponsePageSet(Response $response)
-    // {
-    //     if (strpos($response->content(), '<!--media-container-->') !== false) {
-    //         $this->leafcutter->theme()->activate('library/media-embedding');
-    //     }
-    // }
 
     public function onDOMElement_media(DOMEvent $event)
     {
-        $media = trim($event->getNode()->textContent);
+        $media = $event->getNode()->textContent;
         $media = $this->parseMediaString($media);
         $event->setReplacement($media->__toString());
     }
 
+    public function onDOMElement_gallery(DOMEvent $event)
+    {
+        $node = $event->getNode();
+        $content = [];
+        foreach ($node->childNodes as $c) {
+            if ($c instanceof DOMElement) {
+                // save media nodes into content
+                if ($c->tagName == 'media') {
+                    $media = $this->parseMediaString($c->textContent);
+                    if (!isset($content[$media->srcHash()])) {
+                        $content[$media->srcHash()] = $media;
+                    }
+                }
+            } elseif ($c instanceof DOMText) {
+                // locate assets from text nodes
+                $text = trim($c->textContent);
+                $text = preg_split('/[\r\n]+/', $text);
+                $text = array_filter(array_map('\trim', $text));
+                $context = dirname(URLFactory::context()->siteFullPath()) . '/';
+                foreach ($text as $search) {
+                    foreach (Leafcutter::get()->assets()->search($context . $search) as $asset) {
+                        if ($media = $this->makeMediaFromContent($asset)) {
+                            if (!isset($content[$media->srcHash()])) {
+                                $content[$media->srcHash()] = $media;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $gallery = new GalleryMedia($content);
+        $event->setReplacement($gallery->__toString());
+    }
+
     public function parseMediaString(string $input): AbstractMedia
     {
+        // strip matching leading whitespace
+        $input = $this->stripExtraWhitespace($input);
+        // split at ---
         $input = preg_split('/[\r\n]+\-\-\-[\r\n]+/', $input);
         $media = $this->makeMediaFromString(array_shift($input)) ?? new MediaError('Media or handler not found');
         // get config
@@ -60,6 +91,16 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
         return $media;
     }
 
+    protected function stripExtraWhitespace(string $input): string
+    {
+        $input = trim($input, "\r\n");
+        preg_match('/^([\s]*)/m', $input, $leading);
+        if ($leading = $leading[1]) {
+            $input = preg_replace('/^' . preg_quote($leading) . '/m', '', $input);
+        }
+        return trim($input);
+    }
+
     /**
      * Make a Media object from Leafcutter Content (Assets/Pages)
      *
@@ -69,10 +110,10 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
     protected function makeMediaFromContent($source): ?AbstractMedia
     {
         if ($source instanceof AssetInterface) {
-            if ($media = $this->leafcutter->events()->dispatchFirst('onMediaContentAsset', $source)) {
+            if ($media = $this->leafcutter->events()->dispatchFirst('onMediaContentAsset_' . $source->extension(), $source)) {
                 return $media;
             }
-            if ($media = $this->leafcutter->events()->dispatchFirst('onMediaContentSource_' . $source->extension(), $source)) {
+            if ($media = $this->leafcutter->events()->dispatchFirst('onMediaContentAsset', $source)) {
                 return $media;
             }
         }
@@ -81,12 +122,13 @@ class Addon extends \Leafcutter\Addons\AbstractAddon
         );
     }
 
-    public function onMediaContentSource($source): ?AbstractMedia
+    public function onMediaContentAsset(AssetInterface $source): ?AbstractMedia
     {
-        if ($source instanceof AbstractAsset) {
-            if (in_array($source->extension(), $this->config('video-extensions'))) {
-                return new VideoAssetMedia($source);
-            }
+        if (in_array($source->extension(), $this->config('video-extensions'))) {
+            return new VideoAssetMedia($source);
+        }
+        if (in_array($source->extension(), $this->config('iframe-extensions'))) {
+            return new IframeAssetMedia($source);
         }
         if ($source instanceof ImageAsset) {
             return new ImageAssetMedia($source);

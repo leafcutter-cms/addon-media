@@ -6,6 +6,16 @@ packages:
     css:
       blocking:
         - blocking.css
+  library/media-embedding/gallery:
+    js:
+      page:
+        - gallery.js
+    require-after:
+      - library/media-embedding/gallery/theme
+  library/media-embedding/gallery/theme:
+    css:
+      blocking:
+        - gallery.css
   library/videojs:
     css:
       page:

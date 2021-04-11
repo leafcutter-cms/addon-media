@@ -3,6 +3,7 @@ namespace Leafcutter\Addons\Leafcutter\Media\Media;
 
 use HtmlObjectStrings\GenericTag;
 use Leafcutter\Leafcutter;
+use Leafcutter\URL;
 
 abstract class AbstractMedia
 {
@@ -11,6 +12,12 @@ abstract class AbstractMedia
     abstract protected function html(): string;
     abstract public function classes(): array;
     abstract public function aspectRatio(): float;
+    abstract public function srcHash(): string;
+
+    public function thumbnail(): string
+    {
+        return Leafcutter::get()->assets()->get(new URL('@/favicon.png'))->publicUrl();
+    }
 
     public function color(): ?string
     {

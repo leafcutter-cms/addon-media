@@ -10,6 +10,11 @@ class MediaError extends AbstractMedia
         $this->message = $message;
     }
 
+    public function srcHash(): string
+    {
+        return md5(get_called_class().$this->message);
+    }
+
     public function aspectRatio(): float
     {
         return 0;

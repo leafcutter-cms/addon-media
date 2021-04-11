@@ -24,7 +24,8 @@
     }
 
     .media-credit,
-    .media-caption {
+    .media-caption,
+    .media-extra {
         @include padding-sm;
         @include bg-muted;
         @include font-size-sm;
@@ -41,8 +42,8 @@
     }
 
     &.fluid-height {
-        .media-wrapper {
-            .media-content {
+        >.media-wrapper {
+            >.media-content {
                 position: relative;
             }
         }
@@ -55,5 +56,9 @@
                 @include bg-warning;
             }
         }
+    }
+
+    .media-container {
+        margin: 0;
     }
 }
